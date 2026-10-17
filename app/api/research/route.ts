@@ -56,6 +56,50 @@ export async function POST(req: Request) {
       dataset([...(b.packs || []), b.pack]);
       return json({ ok: true, hash: await digest(b.pack) });
     }
+    if (b.op === "mark") {
+      if (
+        !validDate(b.date) ||
+        !validDate(b.expiry) ||
+        !["CE", "PE"].includes(b.type) ||
+        !Number.isFinite(b.strike)
+      )
+        throw Error("Invalid mark request");
+      const d = data.days
+        .filter(
+          (d) =>
+            d.date <= b.date &&
+            d.date <= b.expiry &&
+            d.quotes.some(
+              (q) =>
+                q.expiry === b.expiry &&
+                q.strike === b.strike &&
+                q.type === b.type &&
+                q.close > 0 &&
+                q.volume > 0,
+            ),
+        )
+        .at(-1);
+      if (!d || daysBetween(d.date, b.date) > 7)
+        return json({
+          mark: null,
+          message:
+            "No archived traded mark within seven days on or before this date.",
+        });
+      const q = d.quotes.find(
+        (q) =>
+          q.expiry === b.expiry && q.strike === b.strike && q.type === b.type,
+      )!;
+      return json({
+        mark: {
+          date: d.date,
+          premium: q.close,
+          spot: d.spot,
+          source: "Archived traded close",
+          kind: "archive",
+          requestedDate: b.date,
+        },
+      });
+    }
     if (b.op === "workspace") {
       if (!validDate(b.cutoff)) throw Error("Invalid cutoff");
       const rows = data.macro.filter(

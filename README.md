@@ -1,75 +1,52 @@
-# Fin-Lumen Research Workbench
+# Fin-Lumen Options Desk — v0.2
 
-A purchase-only Nifty options research app, built with **Next.js, React and TypeScript** for a **GitHub → Vercel** workflow. No database, broker connection, API key or Cloudflare service is required.
+## Update your existing GitHub / Vercel app
 
-## Deploy from GitHub to Vercel
+Export a workspace backup before updating. Replace the repository’s source files with the contents of this release, commit, and let your existing Vercel project redeploy. Keep the same Vercel domain to retain browser data. Node 24, `npm ci`, `npm run build`; no new environment variables.
 
-1. Create a new **private GitHub repository**, for example `fin-lumen-workbench`.
-2. Extract the source ZIP and upload the **contents of the project folder** to the repository. `package.json`, `app/`, `lib/` and `data/` belong at the repository root. Include the small dotfiles and `.github/workflows/check.yml` if using a local Git push. Do not upload `node_modules` or `.next`.
-3. In Vercel, choose **Add New → Project**, import this GitHub repository and select **Next.js**.
-4. Use **Node.js 24.x**, install command `npm ci`, build command `npm run build`, and the default output directory. No environment variables are needed. Deploy.
-5. Configure **Deployment Protection** if this is a private research workspace. Private source code does not make a deployment URL private. Protection availability and production coverage depend on your Vercel plan/settings.
+The original storage name is unchanged. Existing frozen plans, studies, data packs and notes are retained. The new bought-option register is added alongside them. Old backups still restore; new backups include purchases and premium observations.
 
-If you uploaded the project inside a parent folder, set Vercel's Root Directory to that folder. Subsequent GitHub pushes can deploy through Vercel's Git integration.
+## Simpler working view
 
-Official setup references: [Vercel for GitHub](https://vercel.com/docs/git/vercel-for-github), [Vercel deployment protection](https://vercel.com/docs/deployment-protection), [Next.js installation](https://nextjs.org/docs/app/getting-started/installation).
+- **Decision tables:** market reference; 75 daily P / E / V scores; a one-line path read; highlighted option candidates; the selected option’s buy / exit dates and price-scenario table directly below.
+- **Bought options:** actual paid premium, dated lot size, latest observed premium, net marked P&L, days remaining and an action cue with its rule.
+- **Tests & data:** the original frozen-plan, replay, quarterly-test, import and notebook tools at `/research`. Their plots have been replaced with numerical tables.
 
-## Run locally
+**Only Fin-Lumen’s macro V is displayed as volatility.** There are no additional IV or India VIX displays or controls in the decision desk. Internal option-pricing calculations still use fitted market inputs; the macro V score is not substituted as a financial pricing parameter.
 
-Use Node 24 (`.nvmrc` is included).
+Candidate colours distinguish lowest cash outlay (amber), directional exposure (green) and more time (blue). They are explicit exploratory comparisons, not calibrated buy recommendations. The desk shows the available archived contracts, not the entire NSE chain. Candidate filters require volume / OI of at least 1,000 and an expiry buffer of more than seven days after the proposed exit; actual liquidity and fill quality still need checking.
+
+The automatic one-line path compares average P and E in consecutive 25-day blocks, using a provisional 3-point separation. The proposed date preset uses the strongest same-side P−E / E−P day in the 75-day window, entering ten calendar days before and exiting two days after, with calendar adjustments and entry after the cutoff. This preset is **new and uncalibrated**; it is not a discovered historical optimum. Edit dates and conditions before freezing. A frozen plan retains the existing strict-quarter and execution checks.
+
+Price scenarios show Nifty moves of −3%, −1%, 0%, +1% and +3% at the chosen exit, with other fitted pricing inputs held constant. They use the cutoff premium as a reference entry, not an invented future fill. **Outcome and recovery probabilities remain “Not calibrated”.** We still need to fit and validate a move/timing distribution against macro scores before percentages can be supplied responsibly.
+
+Monitoring accepts a manually observed dated premium (with source / timestamp note) or an explicitly labelled archived close. **No automatic live feed is connected.** Action cues use the position’s actual paid premium, costs, written time exit and profit/loss thresholds; they are not probability-based advice. Tracking a position as closed does not calculate realised P&L without an exit fill. Historical prices must not be interpreted as current quotes.
+
+Validation: 16 unit tests, TypeScript, production build and HTTP smoke checks. Browser visual automation remains unavailable in this environment.
+
+---
+
+## Deploy or run
+
+For a new deployment: upload the extracted project contents into a private GitHub repository, then import it into Vercel as Next.js. Use Node 24, `npm ci` and `npm run build`. No database or API keys are needed. Configure Vercel Deployment Protection separately if the URL should be private.
+
+For local use:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000`.
-
-For a production check:
+For verification:
 
 ```sh
 npm test
 npm run typecheck
 npm run build
 npm run test:smoke
-npm start
 ```
 
-The smoke script starts and stops its own production server on port 3011. Set `SMOKE_PORT` to use another port. GitHub Actions runs the unit tests, type check, build and smoke check.
-
-## What you can use now
-
-| Workspace | Behaviour |
-| --- | --- |
-| Macro path | 75 consecutive calendar days of daily pressure, expansion and volatility scores; raw daily table; trailing Nifty chart limited to the cutoff; written path and transition dates |
-| Options lab | Actual archived calls and puts available at the latest loaded session at/before the cutoff; expiry and liquidity filters; dated lots; fitted IV, delta and daily theta; cash-outlay and exposure comparisons; spot/IV/time scenario repricing |
-| Plan vault | Purchase or explicit cash decision; dated entry window; contract-selection rule; opening price cap; costs; time exit, profit/loss signals and optional follow-through deadline; SHA-256 freeze; revisions preserve the original |
-| Monitoring | Manual historical observation date; status strip, holding timer and premium ledger; no later prices used for decisions |
-| Replay & studies | Frozen-plan replay, actual price-print P&L, missing-data and no-fill outcomes, exploratory ±3-session transition audit; six preserved original studies; CSV export |
-| Quarterly tests | Chronological queue from 2018 Q1 to 2026 Q3; three monthly review dates per quarter; frozen quarter rule profiles; matching-profile results; trading outcomes confined to the quarter when strict mode is selected |
-| Data & notebook | JSON dataset import, conflict checks, backup/restore, source fingerprints, research notes and UX issue log |
-
-There is no automated macro-to-trade recommendation, target-price predictor or calibrated probability engine in this release. The researcher writes the path; the app compares contracts and tests explicit rules. This is the workflow envelope in which we can develop those rules without pretending they have already been established.
-
-## A first verification run
-
-The app opens at **15 July 2024**, a period already discussed in our development research.
-
-1. Read the daily macro path and explore the available put/call snapshots.
-2. In Plan vault, the prefilled development example is the **26 September 2024 25,500 PE**, scheduled entry **1 August**, fixed exit **20 August**, one lot, 5% opening cap, 1% adverse slippage per side and ₹100 total reserve.
-3. Freeze it, then reveal the replay. Expected net P&L: **₹2,533.8875** on entry cash **₹16,261.2625**.
-4. Create a revised draft with monitored exits (+50% / −40%). Freeze that separate variant and reveal. The 5 August close triggers a 6 August opening exit: net P&L **₹12,833.60**.
-5. These are correlated, exposed development variants. Neither is a newly discovered blind success. Do not count them as two independent observations.
-
-The July losing put case is also retained and tested. The framework must preserve failures, not reinterpret them into successes.
-
-## Storage and access
-
-Research records, imported packs, notes and reveal logs live in **this browser's IndexedDB**. They are not written to GitHub or a server database. A new browser/device/domain starts with an empty personal workspace. Clearing site data can erase it. Use **Export backup** and **Restore / merge** regularly.
-
-A backup contains saved records and imported packs; an editable draft must be frozen before it becomes a saved plan. Restore merges records, rejecting conflicting identities. There is no account login, cross-device sync, background alert service or live order execution.
-
-The bundled server archive stays out of the initial browser bundle, and responses are filtered by the requested cutoff. Freeze hashes make changes detectable; they do **not** provide a secure blind experiment or a cryptographically trusted audit trail. An owner with source access can inspect outcomes. Real untouched tests need controlled data access and verified forecast vintages.
+Records are saved in the same browser using IndexedDB; export before clearing site data or changing browsers/domains. Freeze research plans before revealing outcomes in Tests & data. A hash detects changes but is not a secure blind-test service. Previously exposed studies stay in development.
 
 ## Data that is actually bundled
 
@@ -154,7 +131,9 @@ A frozen plan hashes the loaded market inputs on/before its cutoff, the full 75-
 
 ## Source map
 
-- `app/page.tsx`, `app/globals.css`: responsive seven-screen workbench.
+- `app/page.tsx`, `app/globals.css`: the numerical decision desk and bought-option monitor.
+- `app/research/page.tsx`: preserved plans, tests and data workspace, with numerical tables.
+- `lib/desk.ts`: explicitly labelled exploratory path, date and comparison rules, price scenarios and position action cues.
 - `app/api/research/route.ts`: cutoff-filtered data, import validation, freeze verification, monitoring and replay API.
 - `lib/research.ts`: deterministic pricing, entry selection, P&L and transition audit.
 - `lib/catalog.ts`: server-only archive loader, input merging and provenance hashes.

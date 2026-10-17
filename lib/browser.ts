@@ -6,6 +6,7 @@ export type Workspace = {
   quarters: any[];
   reveals: any[];
   notes: any[];
+  positions: any[];
 };
 export const emptyWorkspace: Workspace = {
   records: [],
@@ -13,6 +14,7 @@ export const emptyWorkspace: Workspace = {
   quarters: [],
   reveals: [],
   notes: [],
+  positions: [],
 };
 function database(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {

@@ -359,7 +359,7 @@ export default function Desk() {
                 : "Observed premiums, remaining time and the rule behind each action."}
             </p>
           </div>
-          <small>{status} · v0.3</small>
+          <small>{status} · v0.3.1</small>
         </div>
         {message && (
           <div className="flash" role="status">
@@ -501,15 +501,13 @@ export default function Desk() {
                 )}
               </p>
               <div className="table-wrap">
-                <table className="brief-table">
+                <table className="brief-table option-brief-table">
                   <thead>
                     <tr>
-                      <th>Role</th>
+                      <th>Role / reason</th>
                       <th>Cutoff candidate</th>
                       <th>Premium</th>
                       <th>Cost / lot</th>
-                      <th>Why consider it?</th>
-                      <th />
                     </tr>
                   </thead>
                   <tbody>
@@ -518,11 +516,9 @@ export default function Desk() {
                         key={i}
                         className={r.preferred ? "candidate-direction" : ""}
                       >
-                        <td>{r.role}</td>
+                        <td className="shortlist-role"><b>{r.role}</b><small>{r.why}</small></td>
                         <td>
-                          <b>
-                            {number(r.q.strike)} {r.q.type}
-                          </b>
+                          <button className="contract-choice" onClick={()=>select(r.q)} aria-label={`Work out the plan for ${r.q.strike} ${r.q.type}, ${r.q.expiry}`}>{number(r.q.strike)} {r.q.type} ↗</button>
                           <small>{r.q.expiry}</small>
                         </td>
                         <td>{rupee(r.q.close)}</td>
@@ -530,22 +526,14 @@ export default function Desk() {
                           {rupee(r.q.close * r.q.lot)}
                           <small>{r.q.lot} units · before costs</small>
                         </td>
-                        <td className="reading-cell">{r.why}</td>
-                        <td>
-                          <button
-                            className="button ghost small"
-                            onClick={() => select(r.q)}
-                          >
-                            Work out this plan ↓
-                          </button>
-                        </td>
+
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <p className="desk-note">
-                Reference closing prices as of {snap?.date || "the cutoff"}; not
+                Click a contract to see its worked plan. Reference closing prices as of {snap?.date || "the cutoff"}; not
                 executable offers. “Preferred” is an exploratory role choice,
                 not a calibrated profit probability.
               </p>
@@ -750,7 +738,7 @@ export default function Desk() {
                   </div>
                   <h3>Three worked price examples at the proposed exit</h3>
                   <div className="table-wrap">
-                    <table>
+                    <table className="scenario-brief-table">
                       <thead>
                         <tr>
                           <th>If Nifty is…</th>

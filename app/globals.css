@@ -2002,3 +2002,107 @@ td small {
     min-width: 150px;
   }
 }
+/* v0.3.1 — conversation-like typography and restrained colour. */
+:root{--bg:#fafafa;--ink:#202124;--muted:#555b64;--line:#dedfe2;--teal:#263e33;--mint:#f0f7f1}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:16px;line-height:1.65;background:#fafafa;color:#202124;-webkit-font-smoothing:antialiased}
+.desk{background:#fafafa;color:#202124;font-size:16px;line-height:1.65}
+.desk-header{padding:17px 30px;border-color:#e1e1e1;background:#fff}
+.desk-logo{font-size:24px;color:#253a2e;letter-spacing:-.5px}
+.desk-logo span{font-size:10px;letter-spacing:1.3px;color:#555}
+.desk-header nav button,.desk-header nav a{font-size:15px;color:#454545;padding:10px 16px}
+.desk-header nav .active{background:#f0f0f0;color:#202124;font-weight:650}
+.desk-main{max-width:1280px;padding:35px 32px}
+.desk-title{margin-bottom:30px;align-items:flex-start}
+.desk-title h1{font-size:29px;font-weight:650;letter-spacing:-.65px;line-height:1.3;color:#202124}
+.desk-title p{font-size:16px;line-height:1.65;color:#555;margin-top:9px}
+.desk-title>small{font-size:13px;color:#626262;line-height:1.6}
+.desk-card{padding:25px 28px;margin-bottom:26px;background:#fff;border:1px solid #dedfe2;border-radius:10px;box-shadow:none}
+.desk-card h2{font-size:20px;line-height:1.4;font-weight:650;color:#202124;letter-spacing:-.25px}
+.desk-card h3{font-size:17px;line-height:1.5;font-weight:650;color:#202124;margin:27px 0 15px}
+.desk-row{margin-bottom:20px;gap:18px}
+.desk-row>span{font-size:13px;color:#5d5d5d}
+.desk table,.desk td{font-size:16px;line-height:1.65;color:#252525;font-variant-numeric:tabular-nums lining-nums}
+.desk table{border-collapse:collapse;border-spacing:0}
+.desk th,.desk .brief-table th{font-size:14px;line-height:1.5;text-transform:none;letter-spacing:0;font-weight:650;color:#303030;background:#f7f7f7;padding:13px 15px;border-bottom:1px solid #d6d6d6}
+.desk td,.desk .brief-table td{padding:15px;vertical-align:top;border-bottom:1px solid #e4e4e4;color:#252525}
+.desk tbody tr:last-child td{border-bottom:0}
+.desk td b{font-weight:650;color:inherit}
+.desk td small{font-size:13px;line-height:1.6;color:#555;margin-top:5px;max-width:none}
+.desk tr:hover td{background:#fafafa}
+.desk .brief-table .reading-cell{font-size:15px;line-height:1.75;color:#333;min-width:230px;max-width:470px;white-space:normal}
+.brief-table td:first-child{max-width:215px;line-height:1.6}
+.brief-lead{font-size:16px;line-height:1.85;color:#2d2d2d;margin:16px 0 23px;max-width:1000px}
+.brief-lead b{color:#202124;font-weight:700}
+.brief-card .path-line,.desk .path-line{background:#f6f6f6;border:0;border-left:3px solid #555;border-radius:3px;color:#282828;padding:17px 20px;margin:0 0 23px;font-size:16px;line-height:1.85}
+.path-line b{color:#202124;font-weight:700}
+.desk-note,.desk .brief-card>.desk-note{font-size:13px;line-height:1.85;color:#555;margin:16px 0}
+.desk .candidate-direction td{background:#f0f7f1;color:#25362a}
+.desk .candidate-direction td:first-child{border-left:3px solid #3e7250;font-weight:650}
+.desk .candidate-low td,.desk .candidate-time td{background:#fff;color:#252525}
+.desk .chosen td{background:#edf3fc;color:#202124;box-shadow:inset 0 1px #c4d3e7,inset 0 -1px #c4d3e7}
+.desk .chosen td:first-child{border-left:3px solid #3a608a}
+.pick-low,.pick-direction,.pick-time{font-size:13px;padding:3px 6px;border-radius:3px}
+.pick-low{background:#fbf3e3;color:#705116}.pick-direction{background:#ecf5ed;color:#2e5e3b}.pick-time{background:#eef1f9;color:#3e527b}
+.desk-field>span{font-size:14px;font-weight:550;line-height:1.5;color:#424242}
+.desk-field input,.desk-field select,.desk-field textarea,.desk-filters select{font-size:16px;line-height:1.5;padding:10px 12px;color:#242424;border:1px solid #bfc3c7;background:#fff;border-radius:6px}
+.desk-field textarea{line-height:1.75}
+.desk-form{gap:20px;margin:23px 0}
+.desk .checkbox{font-size:14px;color:#444;gap:8px}
+.desk .checkbox input{width:17px;height:17px}
+.desk .button{font-size:14px;line-height:1.5;min-height:42px;padding:10px 15px;font-weight:600;border-radius:6px;white-space:normal}
+.desk .button.small,.desk-header>.button{font-size:13px;min-height:38px;padding:8px 13px}
+.desk .button.primary{background:#293c32;border-color:#293c32;color:#fff}
+.desk .button.primary:hover:not(:disabled){background:#1b2b22}
+.desk .button.ghost{color:#353535;background:#fff;border-color:#c9cdd0}
+.desk .button.ghost:hover:not(:disabled){background:#f4f4f4}
+.supporting{margin-top:24px;padding-top:10px;border-color:#ddd}
+.supporting>summary,.purchase-details>summary,.desk details>summary{font-size:14px;line-height:1.65;font-weight:550;color:#414141;padding:12px 2px}
+.supporting[open]>summary{margin-bottom:17px;color:#202124}
+.desk-empty{font-size:15px;line-height:1.75;color:#555;padding:24px 12px}
+.plan-brief td:first-child{font-weight:650;min-width:130px}
+.plan-brief td:nth-child(2){min-width:170px}
+.desk .plan-brief .reading-cell{max-width:590px}
+.desk td.negative{color:#9d2929}.desk td.positive{color:#285e39}
+.desk .action{font-size:13px;line-height:1.6;padding:6px 9px;color:#454545;background:#f0f0f0;white-space:normal}
+.desk .action.green,.desk .desk-action.green{background:#edf5ee;color:#285836}
+.desk .action.yellow,.desk .desk-action.yellow{background:#faf5e4;color:#705719}
+.desk .action.orange,.desk .desk-action.orange{background:#fbefe2;color:#82501b}
+.desk .action.red,.desk .desk-action.red{background:#faebeb;color:#982c2c}
+.desk-action{padding:17px 20px;gap:17px}
+.desk-action b{font-size:16px}.desk-action span{font-size:14px;line-height:1.7}
+.desk .flash{font-size:14px;line-height:1.7;background:#f4f5f4;border-color:#d6d9d6;color:#303a31;padding:15px 18px}
+.desk-footer{font-size:13px;line-height:1.7;color:#555;border-color:#ddd;padding-top:20px}
+.desk-footer a,.link-button{font-size:13px;color:#3f4852;text-underline-offset:3px}
+/* Apply the same readable typography to the separate research workspace. */
+.main{color:#202124;background:#fafafa}.main p{color:#505050}.main h1{font-size:29px;color:#202124}.main h2{font-size:20px;color:#202124}.main h3{font-size:17px;color:#292929}.main table,.main td{font-size:15px;line-height:1.65;color:#252525}.main th{font-size:13px;text-transform:none;letter-spacing:0;font-weight:650;color:#383838;background:#f5f5f5;padding:12px}.main td{padding:13px 12px;border-color:#e1e1e1}.main td small{font-size:12px;color:#555}.main .fine,.main .card .fine,.main .notice p,.main .section-heading p{font-size:13px;line-height:1.8;color:#555}.main .field>span{font-size:13px;color:#454545}.main input,.main select,.main textarea{font-size:15px;color:#252525;background:#fff;border-color:#bfc3c7}.main .button{font-size:13px;min-height:38px}.main .badge{font-size:12px}.main .metric>span{font-size:11px;color:#535353}.main .metric small{font-size:12px;color:#555}.main .hash{font-size:12px;color:#555}.main summary{font-size:14px;color:#404040}.main .cutoff-bar .eyebrow{font-size:11px;color:#535353}.main .cutoff-bar b,.main .cutoff-bar input{font-size:14px}.main .cutoff-bar small{font-size:12px;color:#555}.main .provenance,.main dl,.main .plain-list{font-size:14px;line-height:1.8;color:#444}.main dt{color:#555}.main dd{color:#252525}.main .save-state{font-size:12px;color:#555}.main .card-footer{font-size:12px;color:#555}
+:focus-visible{outline:3px solid #547ca6;outline-offset:3px}
+.desk button:disabled{opacity:.55}
+@media(max-width:1000px){.desk-main{padding:27px 22px}.desk-card{padding:23px 22px}.desk-header{padding:15px 22px}.desk-header nav button,.desk-header nav a{font-size:14px;padding:9px 12px}.desk-title>small{display:none}.desk-form{gap:18px}.desk-title h1{font-size:27px}}
+@media(max-width:650px){.desk-header{padding:13px 15px;gap:13px}.desk-header nav{gap:3px}.desk-header nav button,.desk-header nav a{font-size:13px;padding:9px 8px}.desk-logo{font-size:22px}.desk-main{padding:24px 13px}.desk-title{margin-bottom:24px}.desk-title h1{font-size:25px}.desk-title p{font-size:15px}.desk-card{padding:21px 16px;margin-bottom:22px;border-radius:8px;scroll-margin-top:150px}.desk-card h2{font-size:19px;line-height:1.5}.desk-card h3{font-size:17px}.desk table,.desk td{font-size:15px}.desk th,.desk .brief-table th{font-size:13px;padding:12px}.desk td,.desk .brief-table td{padding:13px 12px}.desk .brief-table .reading-cell{font-size:15px;min-width:220px;line-height:1.75}.brief-card .path-line,.desk .path-line{font-size:15px;padding:15px 16px;line-height:1.85}.brief-lead{font-size:15px}.desk-note,.desk .brief-card>.desk-note{font-size:13px}.desk .button{font-size:14px}.desk .button.small,.desk-header>.button{font-size:13px}.desk-field input,.desk-field select,.desk-field textarea{font-size:16px}.desk-field>span{font-size:13px}.desk-form{gap:16px}.supporting>summary,.purchase-details>summary,.desk details>summary{font-size:14px}.desk td small{font-size:13px}.desk-footer{font-size:12px}.desk-footer>div{flex-wrap:wrap}.plan-brief td:nth-child(2){min-width:170px}.desk .macro-scroll td,.desk .macro-scroll th{font-size:15px}.main table,.main td{font-size:15px}.main th{font-size:13px}}
+/* Align comparable values without colouring ordinary numbers. */
+.brief-card .brief-table th:nth-child(n+2):nth-child(-n+4),.brief-card .brief-table td:nth-child(n+2):nth-child(-n+4),.full-macro th:nth-child(n+2),.full-macro td:nth-child(n+2),.option-brief-table th:nth-child(3),.option-brief-table td:nth-child(3),.option-brief-table th:nth-child(4),.option-brief-table td:nth-child(4),.scenario-brief-table th:nth-child(n+2),.scenario-brief-table td:nth-child(n+2){text-align:right}
+/* Keep the reading proportions close to a conversation, including on wide monitors. */
+.desk-main{max-width:920px;padding:32px 24px;margin-inline:auto}
+.desk-header{max-width:920px;margin-inline:auto;padding-inline:24px;gap:16px}
+.desk-card{padding:24px}
+.desk-title{flex-wrap:wrap;gap:8px}
+.desk-title>small{font-size:12px}
+.desk-header nav button,.desk-header nav a{padding-inline:11px;font-size:14px}
+.desk-header>.button{font-size:12px;padding:8px 10px}
+.desk .option-brief-table{table-layout:fixed;min-width:640px;width:100%}
+.option-brief-table th:nth-child(1){width:34%}.option-brief-table th:nth-child(2){width:23%}.option-brief-table th:nth-child(3){width:19%}.option-brief-table th:nth-child(4){width:24%}
+.desk .option-brief-table td,.desk .option-brief-table th{padding:13px 11px}
+.desk .option-brief-table .shortlist-role{max-width:none;white-space:normal;font-weight:400}
+.desk .shortlist-role>b{font-size:15px;line-height:1.55;display:block}
+.desk .shortlist-role>small{font-size:13px;line-height:1.7;font-weight:400;white-space:normal;color:#4f4f4f;margin-top:7px}
+.desk .contract-choice{font:inherit;font-weight:650;color:#253c32;background:none;border:0;border-radius:2px;padding:0;text-align:left;text-decoration:underline;text-decoration-color:#8e9c92;text-underline-offset:4px;white-space:normal}
+.desk .contract-choice:hover{text-decoration-color:#253c32}
+.desk .option-brief-table td small{white-space:normal}
+.brief-card .brief-table td:first-child{font-size:14px;min-width:106px}
+.desk .brief-table .reading-cell{min-width:200px}
+.desk-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+.desk-row .desk-field{min-width:210px}
+.main main{max-width:1080px}
+@media(max-width:1000px){.desk-main{max-width:920px;padding:28px 22px}.desk-header{padding-inline:22px}.desk-card{padding:23px}}
+@media(max-width:650px){.desk-main{max-width:100%;padding:24px 13px}.desk-header{padding:13px 15px}.desk-header nav button,.desk-header nav a{padding:9px 8px;font-size:13px}.desk-card{padding:21px 16px}.desk .brief-table .reading-cell{min-width:210px}.desk .option-brief-table{min-width:600px}.desk-title h1{font-size:25px}.desk-header>.button{font-size:12px}}

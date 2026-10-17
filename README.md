@@ -1,3 +1,18 @@
+# v0.3.1 — Readability update
+
+A presentation-only update, keeping the existing readings, shortlists, rules and saved data.
+
+- System UI font (Segoe UI on Windows), with 16px desktop body/table text and 15px mobile tables; no external font download.
+- A centred 920px reading column, with a compact four-column shortlist; supporting wide tables remain expandable.
+- Near-black text, neutral white/grey surfaces and clear table rules, closer to a readable conversation transcript.
+- Sentence-case, bold table headings; more row padding and line spacing; tabular numerals.
+- Restrained highlighting: pale green for the preferred comparison, blue for the selected row, and distinct action/risk states. Ordinary numbers and explanatory text stay dark and neutral.
+- Larger controls and supporting notes, including the separate research screens. No charts or additional data fields.
+
+Replace the repository source files and let the same Vercel project redeploy. Export a backup first as usual; storage and calculations are unchanged. Production build and HTTP checks validate the release. Visual browser automation remains unavailable here.
+
+---
+
 # v0.3 — The worked reading comes first
 
 Update the existing GitHub repository with this release’s source files and let Vercel redeploy. Keep the same domain and export a backup first. Existing records use the same browser storage; no migration or API key is needed.

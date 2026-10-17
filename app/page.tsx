@@ -17,6 +17,7 @@ import {
   deskPlan,
   type MacroRow,
 } from "@/lib/desk";
+import { macroMilestones, workingRead, optionShortlist } from "@/lib/brief";
 import { addDays, validDate, daysBetween, digest } from "@/lib/research";
 const number = (v: any, n = 0) =>
   typeof v === "number" && Number.isFinite(v)
@@ -129,10 +130,16 @@ export default function Desk() {
       E: r[2],
       V: r[3],
     })),
-    path = pathRead(rows),
+    path = workingRead(rows),
     snap = view?.snapshot,
     quotes: any[] = snap?.quotes || [],
-    tags = candidateLabels(quotes, rows, cutoff);
+    tags = candidateLabels(quotes, rows, cutoff),
+    milestones = macroMilestones(rows),
+    shortlist = optionShortlist(
+      quotes.map((q) => ({ ...q, referenceSpot: snap?.spot })),
+      rows,
+      cutoff,
+    );
   const visible = quotes
     .filter(
       (q) =>
@@ -343,7 +350,7 @@ export default function Desk() {
           <div>
             <h1>
               {tab === "decision"
-                ? "Macro → option → plan"
+                ? "Our reading → options → plan"
                 : "Bought-option monitoring"}
             </h1>
             <p>
@@ -352,7 +359,7 @@ export default function Desk() {
                 : "Observed premiums, remaining time and the rule behind each action."}
             </p>
           </div>
-          <small>{status} · v0.2</small>
+          <small>{status} · v0.3</small>
         </div>
         {message && (
           <div className="flash" role="status">
@@ -402,55 +409,151 @@ export default function Desk() {
                 prices are used on this page.
               </p>
             </section>
-            <section className="desk-card">
+            <section className="desk-card brief-card">
               <div className="desk-row">
-                <h2>2. Daily macro scores · 75 days</h2>
+                <h2>2. Our working macro read</h2>
                 <span>{rows.length} / 75 dates loaded</span>
               </div>
-              <div className="macro-tables">
-                {[0, 25, 50].map((start) => (
-                  <div key={start} className="macro-scroll">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Date</th>
-                          <th>P</th>
-                          <th>E</th>
-                          <th>V</th>
-                          <th>P − E</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.slice(start, start + 25).map((r) => (
-                          <tr key={r.date}>
-                            <td>{r.date.slice(5)}</td>
-                            <td className={r.P > r.E ? "pressure-number" : ""}>
-                              {number(r.P, 1)}
-                            </td>
-                            <td className={r.E > r.P ? "expansion-number" : ""}>
-                              {number(r.E, 1)}
-                            </td>
-                            <td>{number(r.V, 1)}</td>
-                            <td>{number(r.P - r.E, 1)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ))}
-              </div>
               <div className="path-line">
-                <b>Expected path:</b> {path}
+                <b>Working interpretation:</b> {path}
+              </div>
+              <div className="table-wrap">
+                <table className="brief-table">
+                  <thead>
+                    <tr>
+                      <th>Date / window</th>
+                      <th>Pressure</th>
+                      <th>Expansion</th>
+                      <th>Macro V</th>
+                      <th>What it may mean</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {milestones.map((r) => (
+                      <tr key={r.date}>
+                        <td>
+                          {r.date}
+                          {r.end ? " → " + r.end : ""}
+                        </td>
+                        <td>{number(r.P, 1)}</td>
+                        <td>{number(r.E, 1)}</td>
+                        <td>
+                          {number(r.V, 1)}
+                          {r.endV !== undefined && r.endV !== r.V
+                            ? " → " + number(r.endV, 1)
+                            : ""}
+                        </td>
+                        <td className="reading-cell">{r.read}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
               <p className="desk-note">
-                This one-line read compares average P and E in each 25-day block
-                using a provisional 3-point separation. It is a research
-                hypothesis, not a calibrated direction or move-size forecast.
+                Key score dates, selected by explicit research rules. Timing may
+                express early or late; a score peak is not a guaranteed price
+                turning point.
               </p>
+              <details className="supporting">
+                <summary>See the full 75-day P / E / V table</summary>
+                <div className="table-wrap full-macro">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Pressure</th>
+                        <th>Expansion</th>
+                        <th>Macro V</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((r) => (
+                        <tr key={r.date}>
+                          <td>{r.date}</td>
+                          <td>{number(r.P, 1)}</td>
+                          <td>{number(r.E, 1)}</td>
+                          <td>{number(r.V, 1)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
             </section>
             <section className="desk-card">
               <div className="desk-row">
-                <h2>3. Calls and puts available at the cutoff</h2>
+                <h2>3. Options worth investigating</h2>
+              </div>
+              <p className="brief-lead">
+                {shortlist.find((r) => r.preferred) ? (
+                  <>
+                    My first comparison would be{" "}
+                    <b>
+                      {number(shortlist.find((r) => r.preferred)!.q.strike)}{" "}
+                      {shortlist.find((r) => r.preferred)!.q.type} ·{" "}
+                      {shortlist.find((r) => r.preferred)!.q.expiry}
+                    </b>
+                    , for directional exposure. The alternatives below show the
+                    cash and time trade-offs.
+                  </>
+                ) : (
+                  "No qualifying shortlist from the loaded data. Wait, or inspect alternatives below; missing data is not a no-trade conclusion."
+                )}
+              </p>
+              <div className="table-wrap">
+                <table className="brief-table">
+                  <thead>
+                    <tr>
+                      <th>Role</th>
+                      <th>Cutoff candidate</th>
+                      <th>Premium</th>
+                      <th>Cost / lot</th>
+                      <th>Why consider it?</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shortlist.map((r, i) => (
+                      <tr
+                        key={i}
+                        className={r.preferred ? "candidate-direction" : ""}
+                      >
+                        <td>{r.role}</td>
+                        <td>
+                          <b>
+                            {number(r.q.strike)} {r.q.type}
+                          </b>
+                          <small>{r.q.expiry}</small>
+                        </td>
+                        <td>{rupee(r.q.close)}</td>
+                        <td>
+                          {rupee(r.q.close * r.q.lot)}
+                          <small>{r.q.lot} units · before costs</small>
+                        </td>
+                        <td className="reading-cell">{r.why}</td>
+                        <td>
+                          <button
+                            className="button ghost small"
+                            onClick={() => select(r.q)}
+                          >
+                            Work out this plan ↓
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="desk-note">
+                Reference closing prices as of {snap?.date || "the cutoff"}; not
+                executable offers. “Preferred” is an exploratory role choice,
+                not a calibrated profit probability.
+              </p>
+              <details className="supporting">
+                <summary>
+                  See all available calls and puts, with filters and liquidity
+                  details
+                </summary>
                 <div className="desk-filters">
                   <select
                     aria-label="Option side"
@@ -482,181 +585,181 @@ export default function Desk() {
                     Candidates only
                   </label>
                 </div>
-              </div>
-              <p className="desk-note">
-                Highlighted candidates: <b className="pick-low">lowest cash</b>{" "}
-                · <b className="pick-direction">directional exposure</b> ·{" "}
-                <b className="pick-time">more time</b>. These are provisional
-                comparison rules, not proven “best buys”. Volume / OI ≥1,000
-                screen liquidity only. Untick “Candidates only” to see every
-                loaded contract meeting those filters.
-              </p>
-              <div className="table-wrap option-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Option</th>
-                      <th>Expiry</th>
-                      <th>Premium close</th>
-                      <th>Cash / lot</th>
-                      <th>Lot</th>
-                      <th>Volume</th>
-                      <th>OI</th>
-                      <th>Reason to compare</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visible.map((q) => {
-                      const labels = tags.get(contractKey(q)) || [];
-                      return (
-                        <tr
-                          key={contractKey(q)}
-                          className={
-                            chosen && contractKey(chosen) === contractKey(q)
-                              ? "chosen"
-                              : labels.includes("Directional")
-                                ? "candidate-direction"
-                                : labels.includes("More time")
-                                  ? "candidate-time"
-                                  : labels.length
-                                    ? "candidate-low"
-                                    : ""
-                          }
-                        >
-                          <td>
-                            <b>
-                              {number(q.strike)} {q.type}
-                            </b>
-                            <small>{q.moneyness}</small>
-                          </td>
-                          <td>{q.expiry}</td>
-                          <td>{number(q.close, 2)}</td>
-                          <td>{rupee(q.close * q.lot)}</td>
-                          <td>{q.lot}</td>
-                          <td>{number(q.volume)}</td>
-                          <td>{number(q.oi)}</td>
-                          <td>{labels.join(" · ") || "Alternative"}</td>
-                          <td>
-                            <button
-                              disabled={!q.greeks}
-                              className="button ghost small"
-                              onClick={() => select(q)}
-                            >
-                              View plan ↓
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {!visible.length && (
-                <p className="desk-empty">
-                  {!view
-                    ? "Loading the dated data…"
-                    : !snap
-                      ? "No option data for this cutoff. Import the relevant quarter in Tests & data."
-                      : onlyPicks
-                        ? "No candidate meets the macro, expiry and liquidity rules. Waiting is valid; untick the filter to inspect alternatives."
-                        : "No contracts meet these filters."}
+
+                <p className="desk-note">
+                  Highlighted candidates:{" "}
+                  <b className="pick-low">lowest cash</b> ·{" "}
+                  <b className="pick-direction">directional exposure</b> ·{" "}
+                  <b className="pick-time">more time</b>. These are provisional
+                  comparison rules, not proven “best buys”. Volume / OI ≥1,000
+                  screen liquidity only. Untick “Candidates only” to see every
+                  loaded contract meeting those filters.
                 </p>
-              )}
+                <div className="table-wrap option-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Option</th>
+                        <th>Expiry</th>
+                        <th>Premium close</th>
+                        <th>Cash / lot</th>
+                        <th>Lot</th>
+                        <th>Volume</th>
+                        <th>OI</th>
+                        <th>Reason to compare</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visible.map((q) => {
+                        const labels = tags.get(contractKey(q)) || [];
+                        return (
+                          <tr
+                            key={contractKey(q)}
+                            className={
+                              chosen && contractKey(chosen) === contractKey(q)
+                                ? "chosen"
+                                : labels.includes("Directional")
+                                  ? "candidate-direction"
+                                  : labels.includes("More time")
+                                    ? "candidate-time"
+                                    : labels.length
+                                      ? "candidate-low"
+                                      : ""
+                            }
+                          >
+                            <td>
+                              <b>
+                                {number(q.strike)} {q.type}
+                              </b>
+                              <small>{q.moneyness}</small>
+                            </td>
+                            <td>{q.expiry}</td>
+                            <td>{number(q.close, 2)}</td>
+                            <td>{rupee(q.close * q.lot)}</td>
+                            <td>{q.lot}</td>
+                            <td>{number(q.volume)}</td>
+                            <td>{number(q.oi)}</td>
+                            <td>{labels.join(" · ") || "Alternative"}</td>
+                            <td>
+                              <button
+                                disabled={!q.greeks}
+                                className="button ghost small"
+                                onClick={() => select(q)}
+                              >
+                                View plan ↓
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {!visible.length && (
+                  <p className="desk-empty">
+                    {!view
+                      ? "Loading the dated data…"
+                      : !snap
+                        ? "No option data for this cutoff. Import the relevant quarter in Tests & data."
+                        : onlyPicks
+                          ? "No candidate meets the macro, expiry and liquidity rules. Waiting is valid; untick the filter to inspect alternatives."
+                          : "No contracts meet these filters."}
+                  </p>
+                )}
+              </details>
             </section>
             <section ref={detail} className="desk-card detail-card">
               <h2>
                 4.{" "}
                 {chosen
                   ? `${number(chosen.strike)} ${chosen.type} · ${chosen.expiry}`
-                  : "Click a candidate to see the timing and price table"}
+                  : "The worked plan"}
               </h2>
               {chosen ? (
                 <>
-                  <div className="desk-form">
-                    <F label="Proposed buy date (editable)">
-                      <input
-                        type="date"
-                        value={buy}
-                        onChange={(e) => setBuy(e.target.value)}
-                      />
-                    </F>
-                    <F label="Proposed final exit (editable)">
-                      <input
-                        type="date"
-                        value={exit}
-                        onChange={(e) => setExit(e.target.value)}
-                      />
-                    </F>
-                    <F label="Lots">
-                      <input
-                        type="number"
-                        min="1"
-                        value={lots}
-                        onChange={(e) => setLots(Number(e.target.value))}
-                      />
-                    </F>
-                  </div>
-                  <p className="desk-note">
-                    Date preset: strongest same-side P−E or E−P day in the
-                    75-day view; enter 10 calendar days before, exit 2 days
-                    after, adjusting closed days. The entry must follow the
-                    cutoff. This lead/lag choice is exploratory and editable; it
-                    has not been calibrated. Never enter purely because the
-                    calendar date arrived.
+                  <p className="brief-lead">
+                    Investigate{" "}
+                    <b>
+                      {number(chosen.strike)} {chosen.type}
+                    </b>{" "}
+                    for the{" "}
+                    {proposal(rows, cutoff, chosen.type)?.peak || "selected"}{" "}
+                    macro milestone. The next decision is whether the entry-day
+                    price meets the plan—not whether to buy immediately.
                   </p>
                   <div className="table-wrap">
-                    <table>
+                    <table className="brief-table plan-brief">
                       <thead>
                         <tr>
-                          <th>Proposed buy</th>
-                          <th>As-of reference premium</th>
-                          <th>Reference entry cap (+5%)</th>
-                          <th>Proposed exit</th>
-                          <th>Expiry buffer</th>
-                          <th>Probability of profit</th>
+                          <th>Decision</th>
+                          <th>Worked proposal</th>
+                          <th>Condition / reason</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
+                          <td>Buy timing</td>
                           <td>{buy}</td>
-                          <td>
-                            {rupee(chosen.close)} on {snap.date}
+                          <td className="reading-cell">
+                            Tentative early-entry date. Check the actual
+                            prior-session premium and liquidity; skip if the
+                            opening price is more than 5% above that close.
                           </td>
-                          <td>{rupee(chosen.close * 1.05)}*</td>
-                          <td>{exit}</td>
+                        </tr>
+                        <tr>
+                          <td>Cash to allow</td>
                           <td>
-                            {validDate(exit)
-                              ? daysBetween(exit, chosen.expiry)
-                              : "—"}{" "}
-                            days
+                            {rupee(
+                              chosen.close *
+                                (1 + slip / 100) *
+                                chosen.lot *
+                                lots +
+                                reserve,
+                            )}
+                            <small>
+                              {lots} lot(s) × {chosen.lot} units
+                            </small>
                           </td>
-                          <td>Not calibrated</td>
+                          <td className="reading-cell">
+                            Based on the {snap.date} premium of{" "}
+                            {rupee(chosen.close)}, plus configured slippage and
+                            costs. Future entry cash is unknown.
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Exit timing</td>
+                          <td>By {exit}</td>
+                          <td className="reading-cell">
+                            Earlier if the net +{profit}% profit or −{loss}%
+                            loss rule signals an exit. Daily replay uses the
+                            next opening print, which may gap.
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>If it does not qualify</td>
+                          <td>Wait / skip</td>
+                          <td className="reading-cell">
+                            No chasing a missed entry and no automatic
+                            extension. The entire premium and entry costs can be
+                            lost.
+                          </td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-                  <p className="desk-note">
-                    *This displayed cap is illustrative using the cutoff close.
-                    The frozen plan recalculates its cap from the actual
-                    prior-session close at entry. A future purchase premium is
-                    unknown today.
-                  </p>
-                  <h3>Exit premium scenarios · explicit assumptions</h3>
+                  <h3>Three worked price examples at the proposed exit</h3>
                   <div className="table-wrap">
                     <table>
                       <thead>
                         <tr>
-                          <th>Nifty change from cutoff</th>
-                          <th>Nifty at exit</th>
-                          <th>Model exit premium</th>
-                          <th>Net P&L from reference close</th>
-                          <th>Return</th>
-                          <th>Scenario probability</th>
+                          <th>If Nifty is…</th>
+                          <th>Illustrative option premium</th>
+                          <th>Net P&L from reference entry</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {[-3, -1, 0, 1, 3].map((move) => {
+                        {[-1, 0, 1].map((move) => {
                           const s = validDate(exit)
                             ? scenario(
                                 chosen,
@@ -673,10 +776,12 @@ export default function Desk() {
                           return (
                             <tr key={move}>
                               <td>
-                                {move > 0 ? "+" : ""}
-                                {move}%
+                                {number(s?.spot, 2)}
+                                <small>
+                                  {move > 0 ? "+" : ""}
+                                  {move}% from cutoff
+                                </small>
                               </td>
-                              <td>{number(s?.spot, 2)}</td>
                               <td>{rupee(s?.premium)}</td>
                               <td
                                 className={
@@ -684,9 +789,8 @@ export default function Desk() {
                                 }
                               >
                                 {rupee(s?.net)}
+                                <small>{percent(s?.returnPct)}</small>
                               </td>
-                              <td>{percent(s?.returnPct)}</td>
-                              <td>Not calibrated</td>
                             </tr>
                           );
                         })}
@@ -694,23 +798,45 @@ export default function Desk() {
                     </table>
                   </div>
                   <p className="desk-note">
-                    These are fitted pricing scenarios, not probabilistic price
-                    forecasts. P / E / V have not yet been mapped to a tested
-                    Nifty move distribution. Other pricing inputs are held at
-                    their observed reference values. P&L assumes entry at the
-                    cutoff close plus costs, not a known fill on the proposed
-                    buy date.
+                    Examples, not targets or probability forecasts. They assume
+                    entry at the cutoff close plus costs and hold other fitted
+                    pricing inputs constant. Timing presets remain experimental.
                   </p>
-                  <F label="Path, dated levels and entry / exit conditions">
-                    <textarea
-                      rows={2}
-                      value={hypothesis}
-                      onChange={(e) => setHypothesis(e.target.value)}
-                    />
-                  </F>
-                  <details>
-                    <summary>Cost and exit-rule settings</summary>
+                  <div className="desk-row">
+                    <button
+                      disabled={busy || !ready}
+                      className="button primary"
+                      onClick={() => run(freeze)}
+                    >
+                      Save this plan before the outcome
+                    </button>
+                    <span>No order is placed.</span>
+                  </div>
+                  <details className="supporting">
+                    <summary>Adjust dates, size, costs or exit rules</summary>
                     <div className="desk-form">
+                      <F label="Proposed buy date">
+                        <input
+                          type="date"
+                          value={buy}
+                          onChange={(e) => setBuy(e.target.value)}
+                        />
+                      </F>
+                      <F label="Final exit date">
+                        <input
+                          type="date"
+                          value={exit}
+                          onChange={(e) => setExit(e.target.value)}
+                        />
+                      </F>
+                      <F label="Lots">
+                        <input
+                          type="number"
+                          min="1"
+                          value={lots}
+                          onChange={(e) => setLots(Number(e.target.value))}
+                        />
+                      </F>
                       <F label="Adverse slippage each side (%)">
                         <input
                           type="number"
@@ -746,17 +872,14 @@ export default function Desk() {
                         />
                       </F>
                     </div>
+                    <F label="Path and entry / exit conditions">
+                      <textarea
+                        rows={2}
+                        value={hypothesis}
+                        onChange={(e) => setHypothesis(e.target.value)}
+                      />
+                    </F>
                   </details>
-                  <div className="desk-row">
-                    <button
-                      disabled={busy || !ready}
-                      className="button primary"
-                      onClick={() => run(freeze)}
-                    >
-                      Freeze this research plan
-                    </button>
-                    <span>Freezing a plan does not place an order.</span>
-                  </div>
                   <details className="purchase-details">
                     <summary>
                       I bought this option — record the actual fill
@@ -804,8 +927,8 @@ export default function Desk() {
                 </>
               ) : (
                 <p className="desk-empty">
-                  The selected option’s dates, reference price, scenarios and
-                  purchase controls will appear here.
+                  Choose a shortlisted option above. Its timing, cash
+                  requirement and exit conditions will appear here.
                 </p>
               )}
             </section>

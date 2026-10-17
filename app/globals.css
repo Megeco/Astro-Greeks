@@ -1904,3 +1904,101 @@ td small {
     white-space: normal;
   }
 }
+/* Brief first; evidence on demand. */
+.brief-card .path-line {
+  margin: 0 0 19px;
+  padding: 15px 17px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.brief-table {
+  table-layout: auto;
+}
+.desk .brief-table td {
+  padding: 12px 14px;
+  vertical-align: top;
+}
+.desk .brief-table th {
+  padding: 11px 14px;
+}
+.desk .brief-table .reading-cell {
+  white-space: normal;
+  min-width: 230px;
+  max-width: 500px;
+  line-height: 1.65;
+  color: #566c50;
+}
+.brief-lead {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #4c6445;
+  margin: 14px 0 19px;
+  max-width: 1000px;
+}
+.brief-lead b {
+  color: #274f32;
+}
+.supporting {
+  border-top: 1px solid #e3e9de;
+  margin-top: 20px;
+  padding-top: 9px;
+}
+.supporting > summary {
+  font-size: 12px;
+  color: #4f7650;
+  padding: 10px 0;
+}
+.supporting[open] > summary {
+  margin-bottom: 13px;
+}
+.full-macro {
+  max-height: 460px;
+}
+.plan-brief td:first-child {
+  font-weight: 600;
+  min-width: 130px;
+}
+.plan-brief td:nth-child(2) {
+  min-width: 190px;
+}
+.desk .plan-brief .reading-cell {
+  max-width: 650px;
+}
+.desk .brief-card > .desk-note {
+  font-size: 11px;
+}
+.detail-card .desk-row {
+  margin-top: 20px;
+}
+.brief-table td:first-child {
+  white-space: normal;
+  max-width: 230px;
+}
+.desk-title h1 {
+  letter-spacing: -0.6px;
+}
+@media (max-width: 650px) {
+  .brief-card .path-line {
+    font-size: 13px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+  .brief-lead {
+    font-size: 13px;
+  }
+  .desk .brief-table td {
+    padding: 11px 10px;
+  }
+  .desk .brief-table .reading-cell {
+    min-width: 190px;
+  }
+  .desk .brief-table th {
+    padding: 10px;
+  }
+  .supporting > summary {
+    font-size: 12px;
+  }
+  .plan-brief td:nth-child(2) {
+    min-width: 150px;
+  }
+}

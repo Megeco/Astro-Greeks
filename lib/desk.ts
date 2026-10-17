@@ -247,6 +247,6 @@ export function deskPlan(
     notes,
     milestones: [],
     strictQuarter: true,
-    ruleVersion: "Table desk v0.2 — exploratory dates",
+    ruleVersion: "Table desk v0.3 — exploratory dates",
   };
 }

@@ -743,7 +743,6 @@ export default function Workbench() {
                           <th>Pressure</th>
                           <th>Expansion</th>
                           <th>Volatility</th>
-                          <th>P − E</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -753,7 +752,6 @@ export default function Workbench() {
                             <td>{r.P}</td>
                             <td>{r.E}</td>
                             <td>{r.V}</td>
-                            <td>{r.P - r.E}</td>
                           </tr>
                         ))}
                       </tbody>

@@ -1,3 +1,28 @@
+# v0.3 — The worked reading comes first
+
+Update the existing GitHub repository with this release’s source files and let Vercel redeploy. Keep the same domain and export a backup first. Existing records use the same browser storage; no migration or API key is needed.
+
+The default view now follows our discussion tables:
+
+1. **Market reference** at the cutoff.
+2. **Our working macro read:** a short interpretation, then a table of selected dates/windows, Pressure, Expansion, Macro V and what each window may mean. The full 75-day table is collapsed underneath. The displayed difference column is removed.
+3. **Options worth investigating:** a preferred directional comparison, balanced benchmark, smaller-premium alternative and additional-time comparison, when qualifying quotes exist. Each row gives a premium, actual dated lot cost and plain-language trade-off. The complete available quote table and filters are collapsed underneath.
+4. **The worked plan:** a proposed buy date, cash to allow, exit date/rules and skip condition. Three price examples show the numbers under explicit Nifty assumptions. Date/size/cost editing is collapsed underneath. Recording an actual purchase remains separate from saving a hypothetical plan.
+
+There are no charts. Bought-option monitoring and the original research tools remain separate. Macro V is the only displayed volatility measure.
+
+The briefing uses explicit rules, **not a trained AI interpretation or calibrated forecast**. Date selection keeps the cutoff, an early relief window, the first later pressure pulse, the strongest pressure and volatility dates, a sustained expansion transition and/or an expansion crest where present. It never looks at later market prices. Consecutive equal P/E days can be grouped into a window; V shows its endpoints. The short narrative refers to these dates rather than averaging the series into three 25-day blocks.
+
+The shortlist uses the nearest expiry after the tentative exit: an absolute delta near 0.70 for directional exposure, near 0.50 for a balanced benchmark, an OTM comparison with absolute delta 0.15–0.40 and a smaller premium, and a second-expiry half-delta comparison. Where a snapshot spot is supplied, the OTM comparison is closest to a 2% OTM target. These are exploratory role choices; they are not proven probabilities or an unconditional instruction to buy. Both calls and puts can appear when separate macro windows qualify. The prior full-quote comparison highlights remain available in the expandable evidence table.
+
+Existing ten-day lead / two-day exit date presets remain experimental and editable. No market-level target or profit probability has been calibrated. Worked premium examples assume a reference entry at the cutoff close, not an unknown future fill. Live data is not connected; monitoring continues to use manually observed or archived dated prices. Original losing tests and frozen records are unchanged.
+
+Validation for this release: 19 unit tests plus production build/type checks and HTTP smoke checks. Visual browser automation was unavailable.
+
+The remaining deployment, storage, archive and execution documentation follows below. Release notes above supersede earlier descriptions of the first screen and shortlisting.
+
+---
+
 # Fin-Lumen Options Desk — v0.2
 
 ## Update your existing GitHub / Vercel app

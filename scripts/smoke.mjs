@@ -8,7 +8,7 @@ let log='';server.stdout.on('data',d=>log+=d);server.stderr.on('data',d=>log+=d)
 async function post(x){const r=await fetch(url+'/api/research',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(x)});return {status:r.status,data:await r.json()}}
 try{
  let up=false;for(let i=0;i<80;i++){try{if((await fetch(url)).ok){up=true;break}}catch{}await delay(100)}assert.ok(up,log);
- const home=await(await fetch(url)).text();assert.ok(home.includes('Macro'));assert.equal(home.includes('<svg'),false);assert.equal((await fetch(url+'/research')).status,200);
+ const home=await(await fetch(url)).text();assert.ok(home.includes('Working interpretation'));assert.ok(home.includes('See the full 75-day'));assert.ok(home.includes('Options worth investigating'));assert.equal(home.includes('P − E'),false);assert.equal(home.includes('<svg'),false);assert.equal((await fetch(url+'/research')).status,200);
  const boot=await(await fetch(url+'/api/research')).json();assert.equal(boot.studies.length,6);assert.equal(boot.studies[0].results,undefined);
  const w=await post({op:'workspace',cutoff:'2024-07-15'});assert.equal(w.status,200);assert.equal(w.data.macro.length,75);assert.equal(w.data.snapshot.date,'2024-07-15');assert.ok(w.data.history.every(d=>d.date<='2024-07-15'));assert.equal(w.data.snapshot.quotes.some(q=>q.strike===25500&&q.expiry==='2024-09-26'),true);
  const old=await post({op:'workspace',cutoff:'2018-02-15'});assert.equal(old.data.snapshot,null);assert.equal(old.data.macro.length,75);

@@ -186,3 +186,11 @@ A frozen plan hashes the loaded market inputs on/before its cutoff, the full 75-
 ## Validation for this handoff
 
 Unit tests, TypeScript checks, a production Next.js build and production HTTP smoke checks passed. Browser visual / interaction automation could not be completed because the environment's browser download returned an invalid archive. Responsive styling is included, but final visual and in-browser storage checks should be made on the Vercel preview as we use the workbench. No live Vercel deployment or GitHub repository has been created by this source package.
+
+## v0.4.0 — Macro & snapshots
+
+The first view connects to `https://fin-lumen-new.vercel.app/api/macro?date=YYYY-MM-DD`, the existing 37.9.14-family service. It requires the requested date, numeric scores and Swiss Ephemeris/sidereal/Lahiri metadata; errors never fall back to the historical archive. Scores may be cached for one hour. Today's IST macro loads on opening; another date or a full 75-calendar-day table loads on demand in batches of five. The source deployment may evolve independently; this is a connected service, not a byte-pinned historical engine. Old tests retain their separate archived inputs.
+
+Option prices use an **NSE CSV snapshot import, not automatic fetching**. Open the linked NSE option chain, choose NIFTY and one expiry, download CSV, enter its displayed IST date/time and expiry, optionally enter the displayed Nifty spot, then import. The CSV parser reads the calls/puts LTP, Bid and Ask fields around Strike, handles quoted thousands, rejects ambiguous duplicate contracts, and preserves missing quotes. It does not import IV/PCR as visible signals. Time, expiry and symbol are user-supplied labels, not independently verified by the CSV. Last-traded prices may precede the snapshot. A positive non-crossed bid can be explicitly copied as an observation to matching bought positions. No trade is sent and no quote is a guaranteed fill.
+
+The snapshot stays in page memory until reload; copied monitoring marks persist in the existing workspace and its backup. Snapshot quotes and connected macro readings are never silently merged into historical replays. No Upstox account, token, scraper or streaming connection is required. This version does **not** implement automatic NSE snapshots or historical option-price retrieval.

@@ -18,6 +18,7 @@ import {
   type MacroRow,
 } from "@/lib/desk";
 import { macroMilestones, workingRead, optionShortlist } from "@/lib/brief";
+import SnapshotDesk from "./components/SnapshotDesk";
 import { addDays, validDate, daysBetween, digest } from "@/lib/research";
 const number = (v: any, n = 0) =>
   typeof v === "number" && Number.isFinite(v)
@@ -44,7 +45,7 @@ function F({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 export default function Desk() {
-  const [tab, setTab] = useState("decision"),
+  const [tab, setTab] = useState("snapshot"),
     [cutoff, setCutoff] = useState("2024-07-15"),
     [store, setStore] = useState<Workspace>(emptyWorkspace),
     [ready, setReady] = useState(false),
@@ -327,6 +328,7 @@ export default function Desk() {
           fin-lumen <span>OPTIONS DESK</span>
         </a>
         <nav aria-label="Workspace">
+          <button className={tab === "snapshot" ? "active" : ""} onClick={() => setTab("snapshot")}>Macro & snapshots</button>
           <button
             className={tab === "decision" ? "active" : ""}
             onClick={() => setTab("decision")}
@@ -349,17 +351,17 @@ export default function Desk() {
         <div className="desk-title">
           <div>
             <h1>
-              {tab === "decision"
+              {tab === "snapshot" ? "Macro scores & dated option prices" : tab === "decision"
                 ? "Our reading → options → plan"
                 : "Bought-option monitoring"}
             </h1>
             <p>
-              {tab === "decision"
+              {tab === "snapshot" ? "Connected macro readings and your NSE option-chain snapshot, in one place." : tab === "decision"
                 ? "Scores, choices and timing together. All values are dated."
                 : "Observed premiums, remaining time and the rule behind each action."}
             </p>
           </div>
-          <small>{status} · v0.3.1</small>
+          <small>{status} · v0.4.0</small>
         </div>
         {message && (
           <div className="flash" role="status">
@@ -369,6 +371,10 @@ export default function Desk() {
             </button>
           </div>
         )}
+        {tab === "snapshot" && <SnapshotDesk positions={store.positions} onMark={(snapshot, quote) => {
+          setStore(s => ({ ...s, positions: s.positions.map(p => !p.closed && p.expiry === snapshot.expiry && p.strike === quote.strike && p.type === quote.type && p.entryDate <= snapshot.asOf.slice(0, 10) ? { ...p, marks: [...p.marks, { date: snapshot.asOf.slice(0, 10), premium: quote.bid, source: `NSE CSV ${snapshot.filename}; user-labelled ${snapshot.asOf} IST; bid mark`, at: new Date().toISOString() }] } : p) }));
+          setMessage("Dated bid mark added to matching bought positions. It is an observation, not an executed sale.");
+        }} />}
         {tab === "decision" && (
           <>
             <section className="desk-card">

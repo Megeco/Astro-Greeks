@@ -1,3 +1,7 @@
+# v0.6.1
+
+See CHANGES-v0.6.1.md for the fitted table and full historical P/E/V + Nifty path.
+
 # Updated v0.6.0
 
 See CHANGES-v0.6.0.md for Macro + Nifty charts, similar historical scores and present/past transits.

@@ -1,3 +1,7 @@
+# Updated v0.6.0
+
+See CHANGES-v0.6.0.md for Macro + Nifty charts, similar historical scores and present/past transits.
+
 # v0.3.1 — Readability update
 
 A presentation-only update, keeping the existing readings, shortlists, rules and saved data.

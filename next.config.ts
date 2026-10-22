@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 const config: NextConfig = {
   poweredByHeader: false,
+  serverExternalPackages: ["@swisseph/node", "@swisseph/core"],
   async headers() {
     return [
       {

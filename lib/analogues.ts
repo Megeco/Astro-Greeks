@@ -16,3 +16,17 @@ export function findAnalogues(rows:HistoryRow[],target:Scores,tolerance:number,h
  const matches:Analogue[]=[];for(const c of candidates)if(matches.every(m=>Math.abs(m.index-c.index)>horizon))matches.push(c);
  return {matches,candidates:candidates.length};
 }
+
+export function compareScorePaths(history:HistoryRow[],target:Scores[],matches:Analogue[]){
+ if(target.length!==75||target.some((r,i)=>!Number.isFinite(r.P+r.E+r.V)||(i>0&&Date.parse(r.date)-Date.parse(target[i-1].date)!==86400000)))return [];
+ const byDate=new Map(history.map(r=>[r.date,r]));
+ return matches.map(m=>{
+  const path:HistoryRow[]=[];let sum=0;
+  for(let i=0;i<75;i++){
+   const date=new Date(Date.parse(m.row.date+'T00:00:00Z')+i*86400000).toISOString().slice(0,10),r=byDate.get(date);
+   if(!r||date>=target[0].date)return {date:m.row.date,distance:null,path:[]};
+   path.push(r);sum+=(r.P-target[i].P)**2+(r.E-target[i].E)**2+(r.V-target[i].V)**2;
+  }
+  return {date:m.row.date,distance:Math.sqrt(sum/225),path};
+ });
+}

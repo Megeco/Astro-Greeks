@@ -1,3 +1,7 @@
+# v0.6.2
+
+See CHANGES-v0.6.2.md for the automatic expandable table and highlighted full75-day score-path comparison.
+
 # v0.6.1
 
 See CHANGES-v0.6.1.md for the fitted table and full historical P/E/V + Nifty path.

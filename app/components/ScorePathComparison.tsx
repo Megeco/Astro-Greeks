@@ -1,0 +1,6 @@
+'use client';
+import type {Scores} from '@/lib/analogues';
+const colors={P:'#b44b4b',E:'#148269',V:'#bd8c25'};
+export default function ScorePathComparison({current,past}:{current:Scores[];past:Scores[]}){
+ return <div className="score-path-overlay"><p className="quiet">Solid: reference {current[0].date} → {current.at(-1)!.date}. Dashed: historical {past[0].date} → {past.at(-1)!.date}. Each comparison uses the same calendar-day offset; all scores use a 0–100 scale.</p><svg viewBox="0 0 900 420" className="history-svg" role="img" aria-label="Closest historical 75-day pressure expansion volatility path compared with reference">{(['P','E','V'] as const).map((k,j)=>{const top=30+j*130,y=(v:number)=>top+95-v*.85,x=(i:number)=>60+i/74*800;return <g key={k}><text x="8" y={top+12}>{k==='P'?'Pressure':k==='E'?'Expansion':'Volatility'}</text>{[0,50,100].map(v=><g key={v}><line x1="60" x2="860" y1={y(v)} y2={y(v)} stroke="#e3e8e2"/><text x="32" y={y(v)+4}>{v}</text></g>)}{[current,past].map((rows,n)=><path key={n} d={rows.map((r,i)=>`${i?'L':'M'}${x(i)},${y(r[k])}`).join(' ')} fill="none" stroke={colors[k]} strokeWidth={n?2:2.5} strokeDasharray={n?'6 4':undefined} opacity={n?.65:1}/>)}</g>;})}<text x="60" y="418">Day 0</text><text x="860" y="418" textAnchor="end">Day 74</text></svg></div>;
+}

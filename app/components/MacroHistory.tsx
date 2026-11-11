@@ -1,5 +1,6 @@
 'use client';
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {Fragment,useEffect,useMemo,useRef,useState} from 'react';
+import ComparisonDialog from './ComparisonDialog';
 import ScorePathComparison from './ScorePathComparison';
 import {compareScorePaths,findAnalogues,type HistoryRow,type Scores} from '@/lib/analogues';
 const today=()=>new Date(Date.now()+19800000).toISOString().slice(0,10);
@@ -19,6 +20,17 @@ function HistoryChart({rows,relative=false}:{rows:HistoryRow[];relative?:boolean
  {[0,25,50,75,100].map(v=><g key={v}><line x1={left} x2={right} y1={165-v*1.35} y2={165-v*1.35} stroke="#e3e8e2"/><text x="8" y={170-v*1.35}>{v}</text></g>)}<text x={left} y="20">Macro scores · 0–100</text><text x={left} y="220">{relative?'Nifty % from anchor close · own scale':'Nifty daily close · own scale'}</text>{closes.length>0&&<><text x="5" y="245">{relative?`+${fmt(extent)}%`:Math.round(hi)}</text><text x="5" y="357">{relative?`−${fmt(extent)}%`:Math.round(lo)}</text></>}{relative&&<line x1={left} x2={right} y1="297.5" y2="297.5" stroke="#a9b8ad" strokeDasharray="4 4"/>}{(['P','E','V','close'] as const).filter(k=>visible[k]).map(k=><path key={k} d={path(k)} fill="none" stroke={colors[k]} strokeWidth="1.8"/>)}<line x1={x(Math.min(cursor,rows.length-1))} x2={x(Math.min(cursor,rows.length-1))} y1="28" y2="360" stroke="#71817b" strokeDasharray="4 4"/><text x={left} y="390">{rows[0].date}</text><text x={right} y="390" textAnchor="end">{rows.at(-1)!.date}</text></svg><label className="desk-field"><span>Shared date cursor · drag or use arrow keys</span><input type="range" min="0" max={rows.length-1} value={Math.min(cursor,rows.length-1)} onChange={e=>setCursor(Number(e.target.value))}/></label></>;
 }
 export default function MacroHistory({referenceStart,referencePath}:{referenceStart:string;referencePath:Scores[]}){
+ const [comparisonDates,setComparisonDates]=useState<string[]>([]);
+ const [comparisonOpen,setComparisonOpen]=useState(false);
+ useEffect(()=>{
+  setComparisonDates([]);
+  setComparisonOpen(false);
+ },[referenceStart]);
+ function toggleComparison(matchDate:string){
+  setComparisonDates(current=>current.includes(matchDate)
+   ?current.filter(value=>value!==matchDate)
+   :current.length<4?[...current,matchDate]:current);
+ }
  const [rows,setRows]=useState<HistoryRow[]>([]),[error,setError]=useState(''),[meta,setMeta]=useState<any>(null),[from,setFrom]=useState('2025-10-22'),[to,setTo]=useState('2026-10-21');
  const [date,setDate]=useState(today),[context,setContext]=useState<Context|null>(null),[contextError,setContextError]=useState(''),[past,setPast]=useState<Context|null>(null),[pastError,setPastError]=useState(''),[selected,setSelected]=useState(''),[tolerance,setTolerance]=useState(5),[horizon,setHorizon]=useState(10),[searchFrom,setSearchFrom]=useState('1996-01-01'),[searchTo,setSearchTo]=useState('2026-10-21'),[count,setCount]=useState(20);const request=useRef(0),pastRequest=useRef(0);
  useEffect(()=>{let alive=true;fetch('/api/macro-history').then(async r=>{if(!r.ok)throw Error('Could not load historical archive.');return r.json();}).then(j=>{if(!alive)return;setMeta(j);setRows(j.rows.map((r:any[])=>({date:r[0],P:r[1],E:r[2],V:r[3],close:r[4]})));setTo(j.priceUpdated);setSearchTo(j.priceUpdated);const d=new Date(j.priceUpdated+'T00:00:00Z');d.setUTCFullYear(d.getUTCFullYear()-1);setFrom(d.toISOString().slice(0,10));}).catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[]);
@@ -29,16 +41,83 @@ export default function MacroHistory({referenceStart,referencePath}:{referenceSt
  const cutoff=today(),chartRows=useMemo(()=>rows.filter(r=>r.date>=from&&r.date<=to&&r.date<cutoff),[rows,from,to,cutoff]);
  const found=useMemo(()=>context?findAnalogues(rows,context,tolerance,horizon,searchFrom,searchTo,cutoff):{matches:[],candidates:0},[rows,context,tolerance,horizon,searchFrom,searchTo,cutoff]);
  const pathComparisons=useMemo(()=>compareScorePaths(rows,targetPath,found.matches),[rows,targetPath,found]);
- const bestPath=pathComparisons.reduce<(typeof pathComparisons)[number]|null>((best,p)=>p.distance!==null&&(!best||p.distance<best.distance!)?p:best,null);
- const bestDate=bestPath?.date||'';
- useEffect(()=>{if(bestDate){setSelected(bestDate);const i=found.matches.findIndex(m=>m.row.date===bestDate);setCount(Math.max(20,Math.ceil((i+1)/20)*20));}},[bestDate,date,tolerance,horizon,searchFrom,searchTo]);
+ const rankedPaths=pathComparisons
+  .filter(path=>path.distance!==null)
+  .sort((a,b)=>a.distance!-b.distance!)
+  .slice(0,3);
+ const firstRankedDate=rankedPaths[0]?.date||'';
+ function inspectPath(pathDate:string){
+  setSelected(pathDate);
+  requestAnimationFrame(()=>document.getElementById(`match-${pathDate}`)?.scrollIntoView({behavior:'smooth',block:'start'}));
+  const index=found.matches.findIndex(match=>match.row.date===pathDate);
+  setCount(current=>Math.max(current,Math.ceil((index+1)/20)*20));
+ }
+ useEffect(()=>{
+  if(!firstRankedDate)return;
+  setSelected(firstRankedDate);
+  const index=found.matches.findIndex(match=>match.row.date===firstRankedDate);
+  setCount(Math.max(20,Math.ceil((index+1)/20)*20));
+ },[firstRankedDate,found.matches]);
  const matches=found.matches,chosen=matches.find(m=>m.row.date===selected)||matches[0];const chosenDate=chosen?.row.date||'';const chosenPath=pathComparisons.find(p=>p.date===chosenDate);
 
  useEffect(()=>{const id=++pastRequest.current;setPast(null);setPastError('');if(!chosenDate)return;fetch('/api/transits?date='+chosenDate).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.error);return j;}).then(j=>{if(id===pastRequest.current)setPast(j);}).catch(e=>{if(id===pastRequest.current)setPastError(e.message);});return()=>{pastRequest.current++;};},[chosenDate]);
+ useEffect(()=>{
+  setComparisonDates([]);
+  setComparisonOpen(false);
+ },[date,tolerance,horizon,searchFrom,searchTo]);
+ const comparisonMatches=comparisonDates
+  .map(matchDate=>matches.find(match=>match.row.date===matchDate))
+  .filter((match):match is NonNullable<typeof match>=>Boolean(match));
  const outcomes=matches.map(m=>m.returns[horizon]).sort((a,b)=>a-b),mean=outcomes.reduce((a,b)=>a+b,0)/outcomes.length,median=outcomes.length?(outcomes[Math.floor((outcomes.length-1)/2)]+outcomes[Math.floor(outcomes.length/2)])/2:0;
  function download(){const text=['Date,Pressure,Expansion,Volatility,RMSDistance,Return5Pct,Return10Pct,Return20Pct,WorstClosingChangePct',...matches.map(m=>[m.row.date,m.row.P,m.row.E,m.row.V,m.distance,m.returns[5]??'',m.returns[10]??'',m.returns[20]??'',m.worst].join(','))].join('\n');const url=URL.createObjectURL(new Blob([text],{type:'text/csv'}));const a=document.createElement('a');a.href=url;a.download=`macro-analogues-${date}-${horizon}s.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ const episodePanel=chosen&&<div className="episode-path" id={`episode-${chosen.row.date}`}>
+ <h3>Reference {date} · historical {chosen.row.date}</h3>{chosenPath?.distance!==null&&chosenPath?.path.length===75&&targetPath.length===75&&<><h3>Reference vs historical 75-day score path</h3><ScorePathComparison key={targetPath[0].date} current={targetPath} past={chosenPath.path}/></>}<h3>Historical path after {chosen.row.date} · scores + Nifty</h3><p className="quiet">The P/E/V readings are from each historical session in this episode, not today's scores. Both charts share dates and a cursor. Move the cursor or slider to see that session's scores, Nifty close and change from the anchor.</p><HistoryChart key={`${chosen.row.date}-${horizon}`} rows={chosen.pathRows} relative/><details><summary>Daily values for this historical path</summary><div className="episode-values"><table><thead><tr><th>Session / date</th><th>P / E / V</th><th>Nifty close</th><th>From anchor</th></tr></thead><tbody>{chosen.pathRows.map((r,i)=><tr key={r.date}><td data-label="Session / date">+{i}<br/>{r.date}</td><td data-label="P / E / V">{r.P} / {r.E} / {r.V}</td><td data-label="Nifty close">{fmt(r.close!)}</td><td data-label="From anchor">{pct(chosen.path[i])}</td></tr>)}</tbody></table></div></details></div>;
  return <section className="desk-card macro-history"><details open><summary><strong>Macro + Nifty · history & similar readings</strong></summary><p className="quiet">Compare the score path with actual Nifty closes, then inspect past readings similar to your selected date. Historical associations are exploratory; matching scores do not imply matching planetary configurations or future outcomes.</p>{error&&<p role="alert">{error}</p>}{!meta&&!error&&<p>Loading historical scores and Nifty closes…</p>}{meta&&<><div className="desk-row"><label className="desk-field"><span>Chart start</span><input type="date" min="1996-01-01" max={meta.priceUpdated} value={from} onChange={e=>setFrom(e.target.value)}/></label><label className="desk-field"><span>Chart end</span><input type="date" min={from} max={meta.priceUpdated} value={to} onChange={e=>setTo(e.target.value)}/></label><button className="ghost" onClick={()=>{setFrom('1996-01-01');setTo(meta.priceUpdated);}}>All history</button></div>{from>to?<p role="alert">Start must precede end.</p>:<HistoryChart rows={chartRows}/>}<p className="quiet">Nifty: {meta.priceSource}. Last bundled close: {meta.priceUpdated}. Weekends and missing closes remain gaps; today's session is excluded. Archive does not auto-refresh. Research engine: {meta.version}, {meta.scoreTime}; the 75-day notebook and this research panel use this same bundled engine.</p>
  <hr/><h2>Find similar historical scores</h2><div className="desk-row"><label className="desk-field"><span>Reference date · IST</span><input type="date" min="1996-01-01" max="2099-12-31" value={date} onChange={e=>setDate(e.target.value)}/></label><button className="ghost" onClick={()=>setDate(today())}>Today</button><label className="desk-field"><span>Score tolerance · RMS points</span><select value={tolerance} onChange={e=>setTolerance(Number(e.target.value))}>{[0,2,3,5,8,10].map(n=><option key={n} value={n}>{n===0?'Exact scores':n}</option>)}</select></label><label className="desk-field"><span>Outcome horizon · sessions</span><select value={horizon} onChange={e=>setHorizon(Number(e.target.value))}>{[5,10,20].map(n=><option key={n}>{n}</option>)}</select></label></div><div className="desk-row"><label className="desk-field"><span>Search from</span><input type="date" min="1996-01-01" value={searchFrom} max={searchTo} onChange={e=>setSearchFrom(e.target.value)}/></label><label className="desk-field"><span>Search through</span><input type="date" min={searchFrom} max={meta.priceUpdated} value={searchTo} onChange={e=>setSearchTo(e.target.value)}/></label><button className="ghost" disabled={!matches.length} onClick={download}>Export all matches</button></div>
- <p className="quiet">Equal-weight distance = √((ΔP² + ΔE² + ΔV²) / 3). Closest scores are chosen first, with at least {horizon+1} sessions between anchors. Every outcome must finish before the reference date. Results are selected by scores, never by returns. Transit similarity is shown for inspection and does not affect ranking.</p>{context&&<p><strong>Reference {context.date}: P {context.P} · E {context.E} · V {context.V}</strong></p>}{context&&(!matches.length?<p>No eligible past episodes within this tolerance. Widen the tolerance or search dates to explore.</p>:<><div className="analog-summary"><span><strong>{matches.length}</strong> separate episodes from {found.candidates} qualifying dates</span><span>Rose: <strong>{matches.filter(m=>m.returns[horizon]>0).length}/{matches.length}</strong> ({fmt(100*matches.filter(m=>m.returns[horizon]>0).length/matches.length)}%)</span><span>Mean {pct(mean)} · Median {pct(median)}</span><span>Range {pct(outcomes[0])} to {pct(outcomes.at(-1)!)}</span></div><p className="quiet">Historical frequencies, not forecast probabilities. {matches.length<30?'Small sample: fewer than 30 episodes.':''} Returns use anchor-day close; scores at 17:30 IST are after the market close. These are comparisons, not executable option entries or estimates of option profit.</p><div className="path-match-status" role="status">{pathError?<p>Path comparison unavailable: {pathError}</p>:targetPath.length!==75?<p>Computing the reference 75-day P/E/V path…</p>:bestPath?<><strong>Closest 75-day score path: {bestPath.date}</strong><p>Path gap {fmt(bestPath.distance!)} points (RMS across all 225 daily P/E/V values). Highlighted in gold below; all other matches remain. {pathComparisons.filter(p=>p.distance!==null).length} complete historical paths compared.</p></>:<p>No complete historical 75-day path among these matches. Broaden the search dates or tolerance.</p>}<small>Path comparison uses calendar days 0–74, not just the anchor score. Historical paths must be complete and end before the reference date. Nifty returns do not influence the highlight; a score-path resemblance is not a Nifty forecast. Episode spacing still follows the selected return horizon, so 75-day score paths can overlap.</small></div><div className="analogue-table-wrap"><table className="analogue-table"><thead><tr><th>Inspect</th><th>Date</th><th>P / E / V</th><th>Score gap</th><th>+5 sess.</th><th>+10 sess.</th><th>+20 sess.</th><th>Worst close</th></tr></thead><tbody>{matches.slice(0,count).map(m=><tr key={m.row.date} className={[m.row.date===chosenDate?'analogue-selected':'',m.row.date===bestDate?'closest-path':''].join(' ')}><td data-label="Inspect"><button className="ghost small" onClick={()=>setSelected(m.row.date)} aria-pressed={m.row.date===chosenDate}>Compare</button></td><td data-label="Date">{m.row.date}{m.row.date===bestDate&&<strong className="closest-path-badge">Closest path</strong>}<small>Path gap {pathComparisons.find(p=>p.date===m.row.date)?.distance==null?"—":fmt(pathComparisons.find(p=>p.date===m.row.date)!.distance!)}</small></td><td data-label="P / E / V">{m.row.P} / {m.row.E} / {m.row.V}</td><td data-label="Score gap">{fmt(m.distance)}</td>{[5,10,20].map(h=><td key={h} data-label={`+${h} sessions`}>{m.returns[h]===undefined?'Unavailable':pct(m.returns[h])}</td>)}<td data-label="Worst close">{pct(m.worst)}</td></tr>)}</tbody></table></div>{count<matches.length&&<button className="ghost" onClick={()=>setCount(c=>c+20)}>Show 20 more ({matches.length-count} remaining)</button>}{chosen&&<div className="episode-path">{chosenPath?.distance!==null&&chosenPath?.path.length===75&&targetPath.length===75&&<><h3>Reference vs historical 75-day score path</h3><ScorePathComparison current={targetPath} past={chosenPath.path}/></>}<h3>Historical path after {chosen.row.date} · scores + Nifty</h3><p className="quiet">The P/E/V readings are from each historical session in this episode, not today's scores. Both charts share dates and a cursor. Move the cursor or slider to see that session's scores, Nifty close and change from the anchor.</p><HistoryChart key={`${chosen.row.date}-${horizon}`} rows={chosen.pathRows} relative/><details><summary>Daily values for this historical path</summary><div className="episode-values"><table><thead><tr><th>Session / date</th><th>P / E / V</th><th>Nifty close</th><th>From anchor</th></tr></thead><tbody>{chosen.pathRows.map((r,i)=><tr key={r.date}><td data-label="Session / date">+{i}<br/>{r.date}</td><td data-label="P / E / V">{r.P} / {r.E} / {r.V}</td><td data-label="Nifty close">{fmt(r.close!)}</td><td data-label="From anchor">{pct(chosen.path[i])}</td></tr>)}</tbody></table></div></details></div>}</>)}
+ <p className="quiet">Equal-weight distance = √((ΔP² + ΔE² + ΔV²) / 3). Closest scores are chosen first, with at least {horizon+1} sessions between anchors. Every outcome must finish before the reference date. Results are selected by scores, never by returns. Transit similarity is shown for inspection and does not affect ranking.</p>{context&&<p><strong>Reference {context.date}: P {context.P} · E {context.E} · V {context.V}</strong></p>}{context&&(!matches.length?<p>No eligible past episodes within this tolerance. Widen the tolerance or search dates to explore.</p>:<><div className="analog-summary"><span><strong>{matches.length}</strong> separate episodes from {found.candidates} qualifying dates</span><span>Rose: <strong>{matches.filter(m=>m.returns[horizon]>0).length}/{matches.length}</strong> ({fmt(100*matches.filter(m=>m.returns[horizon]>0).length/matches.length)}%)</span><span>Mean {pct(mean)} · Median {pct(median)}</span><span>Range {pct(outcomes[0])} to {pct(outcomes.at(-1)!)}</span></div><p className="quiet">Historical frequencies, not forecast probabilities. {matches.length<30?'Small sample: fewer than 30 episodes.':''} Returns use anchor-day close; scores at 17:30 IST are after the market close. These are comparisons, not executable option entries or estimates of option profit.</p><div className="path-match-status" role="status">{pathError?<p>Path comparison unavailable: {pathError}</p>:targetPath.length!==75?<p>Computing the reference 75-day P/E/V path…</p>:rankedPaths.length?<><strong>Top {rankedPaths.length} · 75-day score paths</strong>
+ <div className="ranked-path-buttons" aria-label="Ranked score paths">
+ {rankedPaths.map((path,index)=><button type="button" key={path.date} className={`ranked-path rank-${index+1}`} aria-pressed={path.date===chosenDate} onClick={()=>inspectPath(path.date)}>
+ <strong>#{index+1} · {path.date}</strong><span>Path gap {fmt(path.distance!)} points</span>
+ </button>)}</div>
+ <p>{pathComparisons.filter(p=>p.distance!==null).length} complete historical paths compared. Lower path gap ranks higher.</p></>:<p>No complete historical 75-day path among these matches. Broaden the search dates or tolerance.</p>}<small>Path comparison uses calendar days 0–74, not just the anchor score. Historical paths must be complete and end before the reference date. Nifty returns do not influence the ranking; a score-path resemblance is not a Nifty forecast. Episode spacing still follows the selected return horizon, so 75-day score paths can overlap.</small></div><div className="match-comparison-toolbar">
+ <span>Select up to four dates to compare their details and charts together.</span>
+ <button type="button" className="ghost" disabled={comparisonMatches.length<2} onClick={()=>setComparisonOpen(true)}>Compare selected ({comparisonMatches.length}/4)</button>
+ {comparisonDates.length>0&&<button type="button" className="ghost small" onClick={()=>setComparisonDates([])}>Clear selection</button>}
+ </div><div className="analogue-table-wrap"><table className="analogue-table"><thead><tr><th>Inspect</th><th>Date</th><th>P / E / V</th><th>Score gap</th><th>+5 sess.</th><th>+10 sess.</th><th>+20 sess.</th><th>Worst close</th></tr></thead><tbody>{matches.slice(0,count).map(m=>{
+ const rank=rankedPaths.findIndex(path=>path.date===m.row.date)+1;
+ return <Fragment key={m.row.date}><tr id={`match-${m.row.date}`} onClick={()=>inspectPath(m.row.date)} className={['analogue-result',m.row.date===chosenDate?'analogue-selected':'',rank?`ranked-path rank-${rank}`:''].join(' ')}><td data-label="Inspect">
+ <label className="match-select" onClick={event=>event.stopPropagation()}>
+  <input type="checkbox" checked={comparisonDates.includes(m.row.date)}
+   disabled={comparisonDates.length>=4&&!comparisonDates.includes(m.row.date)}
+   aria-label={`Select ${m.row.date} for comparison`} onChange={()=>toggleComparison(m.row.date)}/>
+  Select
+ </label>
+ <button type="button" className="ghost small" onClick={event=>{event.stopPropagation();inspectPath(m.row.date);}} aria-expanded={m.row.date===chosenDate} aria-controls={m.row.date===chosenDate?`episode-${m.row.date}`:undefined}>Compare</button>
+ </td><td data-label="Date">{m.row.date}{rank>0&&<strong className="path-rank-badge">Rank {rank}</strong>}<small>Path gap {pathComparisons.find(p=>p.date===m.row.date)?.distance==null?"—":fmt(pathComparisons.find(p=>p.date===m.row.date)!.distance!)}</small></td><td data-label="P / E / V">{m.row.P} / {m.row.E} / {m.row.V}</td><td data-label="Score gap">{fmt(m.distance)}</td>{[5,10,20].map(h=><td key={h} data-label={`+${h} sessions`}>{m.returns[h]===undefined?'Unavailable':pct(m.returns[h])}</td>)}<td data-label="Worst close">{pct(m.worst)}</td></tr>
+ {m.row.date===chosenDate&&<tr className="analogue-details"><td colSpan={8}>{episodePanel}</td></tr>}
+ </Fragment>;})}</tbody></table></div>{count<matches.length&&<button className="ghost" onClick={()=>setCount(c=>c+20)}>Show 20 more ({matches.length-count} remaining)</button>}</>)}
+ <ComparisonDialog open={comparisonOpen} onClose={()=>setComparisonOpen(false)} referenceDate={date}>
+ {comparisonMatches.map(match=>{
+  const scorePath=pathComparisons.find(path=>path.date===match.row.date);
+  const rank=rankedPaths.findIndex(path=>path.date===match.row.date)+1;
+  return <section key={match.row.date} className={`match-comparison-card ${rank?`ranked-path rank-${rank}`:''}`}>
+   <h3>{match.row.date}{rank>0&&<span className="path-rank-badge">Rank {rank}</span>}</h3>
+   <dl className="match-comparison-facts">
+    <div><dt>P / E / V</dt><dd>{match.row.P} / {match.row.E} / {match.row.V}</dd></div>
+    <div><dt>Score gap</dt><dd>{fmt(match.distance)}</dd></div>
+    <div><dt>75-day path gap</dt><dd>{scorePath?.distance==null?'Unavailable':fmt(scorePath.distance)}</dd></div>
+    {[5,10,20].map(sessions=><div key={sessions}><dt>+{sessions} sessions</dt><dd>{match.returns[sessions]===undefined?'Unavailable':pct(match.returns[sessions])}</dd></div>)}
+    <div><dt>Worst close</dt><dd>{pct(match.worst)}</dd></div>
+   </dl>
+   {comparisonOpen&&<>
+    {scorePath?.path.length===75&&targetPath.length===75
+     ?<><h4>Reference vs historical 75-day score path</h4><ScorePathComparison current={targetPath} past={scorePath.path}/></>
+     :<p className="quiet">{pathError||'A complete 75-day score comparison is unavailable for this date.'}</p>}
+    <h4>Historical scores and Nifty</h4>
+    <HistoryChart rows={match.pathRows} relative/>
+   </>}
+  </section>;
+ })}
+ </ComparisonDialog>
  <div className="transit-grid"><Transit context={context} error={contextError} title="Reference date · present / selected transits"/>{chosenDate?<Transit context={past} error={pastError} title="Selected historical match · past transits"/>:<div className="transit-box"><h3>Past transits</h3><p>Select an eligible match to compare planetary configurations.</p></div>}</div></>}</details></section>;
 }
